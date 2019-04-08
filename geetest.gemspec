@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ['FlowerWrong']
   spec.email         = ['sysuyangkang@gmail.com']
 
-  spec.summary       = 'Write a short summary, because RubyGems requires one.'
-  spec.description   = 'Write a longer description or delete this line.'
-  spec.homepage      = 'https://github.com/FlowerWrong/scc_ruby'
+  spec.summary       = 'SDK for Geetest 3.0 captcha in ruby'
+  spec.description   = 'Ruby SDK for Geetest 3.0 captcha'
+  spec.homepage      = 'https://github.com/zhulux/geetest-ruby-sdk'
   spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
 
     spec.metadata['homepage_uri'] = spec.homepage
     spec.metadata['source_code_uri'] = spec.homepage
-    spec.metadata['changelog_uri'] = spec.homepage
+    spec.metadata['changelog_uri'] = 'https://github.com/zhulux/geetest-ruby-sdk/blob/master/README.md'
   else
     raise 'RubyGems 2.0 or newer is required to protect against ' \
       'public gem pushes.'
