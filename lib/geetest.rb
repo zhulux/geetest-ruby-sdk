@@ -9,7 +9,7 @@ require 'json'
 module Geetest
   class API
     API_VERSION = '3.0.0'.freeze
-    # 极验验证二次验证表单数据 chllenge
+    # 极验验证二次验证表单数据 challenge
     FN_CHALLENGE = 'geetest_challenge'.freeze
     # 极验验证二次验证表单数据 validate
     FN_VALIDATE = 'geetest_validate'.freeze
@@ -82,10 +82,10 @@ module Geetest
 
     # 正常模式的二次验证方式.向geetest server 请求验证结果.
     def success_validate(challenge, validate, seccode, user_id = nil, gt = nil, data = '', userinfo = '', jf = 1)
-      return 0 unless _check_para(challenge, validate, seccode)
-      return 0 unless _check_result(challenge, validate)
+      return false unless _check_para(challenge, validate, seccode)
+      return false unless _check_result(challenge, validate)
 
-      validate_url = "#{self.API_URL}#{self.VALIDATE_HANDLER}"
+      validate_url = "#{API_URL}#{VALIDATE_HANDLER}"
 
       query = {
         "seccode": seccode,
@@ -112,20 +112,32 @@ module Geetest
         backinfo = backinfo['seccode']
       end
 
-      return 1 if backinfo == _md5_encode(seccode)
+      return true if backinfo == _md5_encode(seccode)
 
-      0
+      false
+    end
+
+    def failback_validate(challenge, validate, seccode)
+      # failback模式的二次验证方式.在本地对轨迹进行简单的判断返回验证结果.
+      return false unless _check_para(challenge, validate, seccode)
+
+      _failback_check_result(challenge, validate)
+    end
+
+    def _failback_check_result(_challenge, validate)
+      validate == encode_str
     end
 
     def _register_challenge(user_id = nil, _new_captcha = 1, jf = 1, client_type = 'web', ip_address = '')
       if user_id.nil?
-        register_url = "#{self.API_URL}#{self.REGISTER_HANDLER}?gt=#{@captcha_id}&json_format=#{jf}&client_type=#{client_type}&ip_address=#{ip_address}"
+        register_url = "#{API_URL}#{REGISTER_HANDLER}?gt=#{@captcha_id}&json_format=#{jf}&client_type=#{client_type}&ip_address=#{ip_address}"
       else
-        register_url = "#{self.API_URL}#{self.REGISTER_HANDLER}?gt=#{@captcha_id}&user_id=#{user_id}&json_format=#{jf}&client_type=#{client_type}&ip_address=#{ip_address}"
+        register_url = "#{API_URL}#{REGISTER_HANDLER}?gt=#{@captcha_id}&user_id=#{user_id}&json_format=#{jf}&client_type=#{client_type}&ip_address=#{ip_address}"
       end
 
       uri = URI(register_url)
       res = Net::HTTP.get_response(uri)
+      # "{\"success\":1,\"gt\":\"xxx\",\"challenge\":\"xxx\",\"new_captcha\":false}"
       res.code == '200' ? res.body : ''
     end
 
