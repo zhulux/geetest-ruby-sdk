@@ -1,15 +1,13 @@
 # Geetest
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/geetest`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Geetest sdk v3 in ruby
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'geetest'
+gem 'geetest', github: 'zhulux/geetest-ruby-sdk'
 ```
 
 And then execute:
@@ -22,7 +20,32 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+# @doc https://docs.geetest.com/install/deploy/server/python
+def behavior_verification_step_one
+  # status=1表示初始化成功，status=0表示宕机状态
+  status, response_h = $geetest.pre_process(nil, 0, 0, 'web', request.remote_ip)
+
+  render json: response_h
+end
+
+def behavior_verification_step_two
+  challenge = behavior_verification_params[:geetest_challenge]
+  validate = behavior_verification_params[:geetest_validate]
+  seccode = behavior_verification_params[:geetest_seccode]
+  status = 1
+  result = if status == 1
+             $geetest.success_validate(challenge, validate, seccode, nil, nil, '', '', 0)
+           else
+             $geetest.failback_validate(challenge, validate, seccode)
+           end
+  render json: { status: result }
+end
+
+def behavior_verification_params
+  params.permit(:geetest_challenge, :geetest_validate, :geetest_seccode)
+end
+```
 
 ## Development
 

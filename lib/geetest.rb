@@ -26,58 +26,11 @@ module Geetest
       @captcha_id = captcha_id # 公钥
       @private_key = private_key # 私钥
       @sdk_version = API_VERSION
-      @_response_str = ''
     end
 
     def pre_process(user_id = nil, new_captcha = 1, jf = 1, client_type = 'web', ip_address = '')
       status, challenge = _register(user_id, new_captcha, jf, client_type, ip_address)
-      @_response_str = _make_response_format(status, challenge, new_captcha)
-      status
-    end
-
-    # jf is JSON_FORMAT
-    def _register(user_id = nil, new_captcha = 1, jf = 1, client_type = 'web', ip_address = '')
-      pri_responce = _register_challenge(user_id, new_captcha, jf, client_type, ip_address)
-      if pri_responce.empty?
-        challenge = ' '
-      else
-        if jf == 1
-          response_dic = JSON.parse(pri_responce)
-          challenge = response_dic['challenge']
-        else
-          challenge = pri_responce
-        end
-      end
-
-      if challenge.size == 32
-        challenge = _md5_encode("#{challenge}#{@private_key}")
-        return 1, challenge
-      else
-        return 0, _make_fail_challenge
-      end
-    end
-
-    def get_response_str
-      @_response_str
-    end
-
-    def _make_fail_challenge
-      rnd1 = rand(100)
-      rnd2 = rand(100)
-      md5_str1 = _md5_encode(rnd1.to_s)
-      md5_str2 = _md5_encode(rnd2.to_s)
-      md5_str1 + md5_str2[0...2]
-    end
-
-    def _make_response_format(success = 1, challenge = nil, new_captcha = 1)
-      challenge = _make_fail_challenge if challenge.nil?
-
-      if new_captcha == 1
-        string_format = JSON.generate('success': success, 'gt': @captcha_id, 'challenge': challenge, "new_captcha": true)
-      else
-        string_format = JSON.generate('success': success, 'gt': @captcha_id, 'challenge': challenge, "new_captcha": false)
-      end
-      string_format
+      [status, _make_response_format(status, challenge, new_captcha)]
     end
 
     # 正常模式的二次验证方式.向geetest server 请求验证结果.
@@ -122,6 +75,46 @@ module Geetest
       return false unless _check_para(challenge, validate, seccode)
 
       _failback_check_result(challenge, validate)
+    end
+
+    private
+
+    # jf is JSON_FORMAT
+    def _register(user_id = nil, new_captcha = 1, jf = 1, client_type = 'web', ip_address = '')
+      pri_responce = _register_challenge(user_id, new_captcha, jf, client_type, ip_address)
+      if pri_responce.empty?
+        challenge = ' '
+      else
+        if jf == 1
+          response_dic = JSON.parse(pri_responce)
+          challenge = response_dic['challenge']
+        else
+          challenge = pri_responce
+        end
+      end
+
+      if challenge.size == 32
+        challenge = _md5_encode("#{challenge}#{@private_key}")
+        return 1, challenge
+      else
+        return 0, _make_fail_challenge
+      end
+    end
+
+    def _make_fail_challenge
+      rnd1 = rand(100)
+      rnd2 = rand(100)
+      md5_str1 = _md5_encode(rnd1.to_s)
+      md5_str2 = _md5_encode(rnd2.to_s)
+      md5_str1 + md5_str2[0...2]
+    end
+
+    def _make_response_format(success = 1, challenge = nil, new_captcha = 1)
+      challenge = _make_fail_challenge if challenge.nil?
+
+      res = { 'success': success, 'gt': @captcha_id, 'challenge': challenge, "new_captcha": true }
+      res['new_captcha'] = false if new_captcha != 1
+      res
     end
 
     def _failback_check_result(_challenge, validate)
